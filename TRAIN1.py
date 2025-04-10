@@ -7,7 +7,7 @@ import warnings
 warnings.filterwarnings('ignore')  # Suppress common warnings
 
 # Load the master dataset
-master_file_path ='TEST/main_file_updated.csv'  # Use your path
+master_file_path = 'main_file_updated.csv'  # Use your path
 try:
     master_df = pd.read_csv(master_file_path)
 except FileNotFoundError:
@@ -74,11 +74,11 @@ try:
     print(tuned_model)
 
     # --- Save the Model ---
-    save_path = 'TEST/ml_avg_predictor_model.pkl'  # Save in TEST directory with .pkl extension
+    save_path = 'model'  # Simple name without extension
     print(f"\nSaving the final tuned model to {save_path}...")
     save_model(tuned_model, save_path)  # Saves the best (original or tuned)
 
-    print("✅ Model training complete. Model saved as 'TEST/ml_avg_predictor_model.pkl'.")
+    print("✅ Model training complete. Model saved as 'model'.")
 
 except Exception as e:
     # Generic exception handling

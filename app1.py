@@ -12,9 +12,9 @@ from pathlib import Path
 warnings.filterwarnings('ignore')
 
 # Constants
-MASTER_FILE_PATH = 'TEST/main_file_updated.csv'
-MODEL_PATH = 'TEST/ml_avg_predictor_model.pkl'
-INPUT_EXCEL_PATH = r"C:\Users\rajen\OneDrive\Desktop\Downloads\SquadPlayerNames_IndianT20League.xlsx"
+MASTER_FILE_PATH = 'main_file_updated.csv'
+MODEL_PATH = 'model'  # No extension
+INPUT_EXCEL_PATH = os.path.expanduser('~/Downloads/SquadPlayerNames_IndianT20League.xlsx')
 DOWNLOADS_PATH = str(Path.home() / "Downloads")  # Gets user's Downloads folder
 MAX_CREDITS = 100
 TEAM_SIZE = 11
@@ -47,9 +47,9 @@ def load_master_data(file_path: str = MASTER_FILE_PATH) -> Optional[pd.DataFrame
             for col in avg_cols:
                 df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
             df['Weighted_Score'] = (
-                0.60 * df['Dream11_Avg'] +
+                0.55 * df['Dream11_Avg'] +
                 0.10 * df['Dream_11_2024_avg'] +
-                0.30 * df['Dream_11 round 1']
+                0.35 * df['Dream_11 round 1']
             )
         else:
             df['Weighted_Score'] = 0
@@ -61,12 +61,19 @@ def load_master_data(file_path: str = MASTER_FILE_PATH) -> Optional[pd.DataFrame
 @lru_cache(maxsize=1)
 def load_ml_model(model_path: str = MODEL_PATH) -> Optional:
     try:
-        if not os.path.exists(model_path):
-            print(f"❌ Model not found at: {model_path}")
-            print(f"Please run TRAIN1.py first to create the model")
-            return None
+        # Try with .pkl extension first (most common case)
+        model_path_with_pkl = f"{model_path}.pkl"
+        if os.path.exists(model_path_with_pkl):
+            return load_model(model_path)  # PyCaret automatically adds .pkl extension
             
-        return load_model(model_path)
+        # Try with original path
+        if os.path.exists(model_path):
+            return load_model(model_path)
+            
+        print(f"❌ Model not found at: {model_path_with_pkl} or {model_path}")
+        print(f"Please run TRAIN1.py first to create the model")
+        return None
+            
     except Exception as e:
         print(f"❌ Failed to load ML model: {e}")
         return None
@@ -147,7 +154,7 @@ def select_best_team_optimized_pulp(
     df: pd.DataFrame,
     max_credits: float,
     lineup_bonus: float = 0.15,
-    form_weight: float = 0.3
+    form_weight: float = 0.25
 ) -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame()
@@ -279,7 +286,7 @@ def assign_captain_vice_captain(df: pd.DataFrame) -> pd.DataFrame:
             'wicket_taker': lambda row: 0.2 if 'BOWL' in row['Player Type'].upper() and row.get('Bowling Strike_rate', 0) < 18 else 0
         },
         'ALL': {
-            'dual_threat': lambda row: 0.25 if ('ALL' in row['Player Type'].upper() or 'ROUNDER' in row['Player Type'].upper()) else 0
+            'dual_threat': lambda row: 0.30 if ('ALL' in row['Player Type'].upper() or 'ROUNDER' in row['Player Type'].upper()) else 0
         },
         'WK': {
             'batting_wk': lambda row: 0.15 if ('WK' in row['Player Type'].upper() or 'WICKETKEEPER' in row['Player Type'].upper()) and row.get('lineupOrder', 99) <= 4 else 0
@@ -294,7 +301,7 @@ def assign_captain_vice_captain(df: pd.DataFrame) -> pd.DataFrame:
     # Form-based adjustments
     if 'Weighted_Score' in df_cvc.columns:
         # Give bonus for consistent performers
-        df_cvc['CVC_Score'] += df_cvc['Weighted_Score'] * 0.1
+        df_cvc['CVC_Score'] += df_cvc['Weighted_Score'] * 0.15
     
     # Lineup order considerations - favor top order batsmen and all-rounders
     if 'lineupOrder' in df_cvc.columns:
@@ -308,7 +315,7 @@ def assign_captain_vice_captain(df: pd.DataFrame) -> pd.DataFrame:
     
     # Consider fantasy-specific stats if available
     if 'Dream_11 round 1' in df_cvc.columns:
-        df_cvc['CVC_Score'] += df_cvc['Dream_11 round 1'] * 0.10
+        df_cvc['CVC_Score'] += df_cvc['Dream_11 round 1'] * 0.15
     
     # Venue/opposition considerations could be added here if data is available
     
