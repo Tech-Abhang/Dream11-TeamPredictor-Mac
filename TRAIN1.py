@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from pycaret.regression import setup, compare_models, tune_model, save_model, create_model
 import warnings
+import os
 
 warnings.filterwarnings('ignore')  # Suppress common warnings
 
@@ -35,9 +36,9 @@ features = [
     'Credits', 'Player Type', 'Team', 'Innings', 'Runs', 'Balls Faced', 'Fours', 'Sixes',
     'Batting Average', 'Strike Rate', 'Boundary_Percentage', 'Innings_X', 'Balls Bowled',
     'Runs_Conceded', 'Wickets', 'Bowling Average', 'Economy Rate', 'Bowling Strike_rate',
-     # Added new features
+    'RECENT_FORM'  # Added RECENT_FORM feature
 ]
-target = 'Weighted_Score'
+target ='Weighted_Score'
 
 # Filter the dataset to include only the selected features and target
 data = master_df[features + [target]].dropna()
@@ -74,7 +75,7 @@ try:
     print(tuned_model)
 
     # --- Save the Model ---
-    save_path = 'model'  # Simple name without extension
+    save_path = os.path.join(os.path.dirname(__file__), 'model')  # Save in same directory as script
     print(f"\nSaving the final tuned model to {save_path}...")
     save_model(tuned_model, save_path)  # Saves the best (original or tuned)
 
