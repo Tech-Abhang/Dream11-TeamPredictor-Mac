@@ -1,4 +1,4 @@
-# Dream11-TeamPredictor-Mac# Dream11 Team Predictor
+# Dream11 Team Predictor
 
 A machine learning-based application that predicts optimal Dream11 teams for Indian T20 League matches.
 
@@ -23,7 +23,7 @@ This application uses machine learning to analyze player statistics and predict 
 
 ## Requirements
 
-- Python 3.10
+- Python 3.8.20
 - Docker (optional, for containerized deployment)
 
 ## Installation
